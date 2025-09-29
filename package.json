@@ -4,7 +4,20 @@
   "description": "",
   "main": "sketch-0..js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node serve.js",
+    "serve": "node serve.js",
+    "dev": "node serve.js",
+    "sketch": "canvas-sketch",
+    "sketch:01": "canvas-sketch sketch-0..js --open",
+    "sketch:02": "canvas-sketch sketch-02.js --open",
+    "sketch:03": "canvas-sketch sketch-03.js --open",
+    "sketch:04": "canvas-sketch sketch-04.js --open",
+    "sketch:05": "canvas-sketch sketch-05.js --open",
+    "sketch:06": "canvas-sketch sketch-06.js --open",
+    "sketch:fractal": "canvas-sketch fractal-tree.js --open",
+    "sketch:cellular": "canvas-sketch cellular-automata.js --open",
+    "sketch:waves": "canvas-sketch wave-interference.js --open"
   },
   "keywords": [],
   "author": "",

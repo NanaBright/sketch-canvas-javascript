@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Sketch Runner | Creative Coding Museum</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap&display=fallback"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    "Inter",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                background: #0a0a0a;
+                color: #ffffff;
+                overflow: hidden;
+            }
+
+            .sketch-container {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+            }
+
+            .sketch-frame {
+                position: relative;
+                background: #000;
+                border-radius: 10px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                overflow: hidden;
+                max-width: 90vw;
+                max-height: 90vh;
+            }
+
+            .sketch-iframe {
+                width: 800px;
+                height: 800px;
+                border: none;
+                border-radius: 10px;
+                background: #000;
+            }
+
+            .controls-overlay {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                display: flex;
+                gap: 10px;
+                z-index: 1000;
+                transition: opacity 0.3s ease;
+            }
+
+            .control-btn {
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                padding: 10px 15px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-family:
+                    "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code",
+                    "Roboto Mono", Consolas, "Courier New", monospace;
+                font-size: 12px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .control-btn:hover {
+                background: rgba(0, 0, 0, 0.95);
+                border-color: rgba(0, 245, 255, 0.5);
+                transform: translateY(-2px);
+            }
+
+            .back-btn {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                background: linear-gradient(45deg, #8338ec, #00f5ff);
+                color: white;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 25px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .back-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(131, 56, 236, 0.3);
+            }
+
+            .loading {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 600px;
+                width: 600px;
+                color: rgba(255, 255, 255, 0.7);
+                font-family: "JetBrains Mono", monospace;
+                text-align: center;
+                background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+                border-radius: 10px;
+            }
+
+            .loading-spinner {
+                width: 50px;
+                height: 50px;
+                border: 3px solid rgba(131, 56, 236, 0.3);
+                border-top: 3px solid #8338ec;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 20px;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .error {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 400px;
+                width: 600px;
+                color: #ff4757;
+                font-family:
+                    "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code",
+                    "Roboto Mono", Consolas, "Courier New", monospace;
+                text-align: center;
+                padding: 40px;
+                background: rgba(255, 71, 87, 0.1);
+                border: 1px solid rgba(255, 71, 87, 0.3);
+                border-radius: 10px;
+                margin: 20px;
+            }
+
+            .error h3 {
+                margin-bottom: 15px;
+                color: #ff4757;
+            }
+
+            .error p {
+                margin-bottom: 20px;
+                opacity: 0.8;
+                line-height: 1.5;
+            }
+
+            .error a {
+                color: #00f5ff;
+                text-decoration: none;
+                padding: 10px 20px;
+                border: 1px solid #00f5ff;
+                border-radius: 20px;
+                transition: all 0.3s ease;
+            }
+
+            .error a:hover {
+                background: rgba(0, 245, 255, 0.1);
+            }
+
+            .info-panel {
+                position: absolute;
+                bottom: 20px;
+                left: 20px;
+                background: rgba(0, 0, 0, 0.8);
+                padding: 20px;
+                border-radius: 15px;
+                font-family:
+                    "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code",
+                    "Roboto Mono", Consolas, "Courier New", monospace;
+                font-size: 12px;
+                backdrop-filter: blur(10px);
+                max-width: 350px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transition: opacity 0.3s ease;
+            }
+
+            .info-panel h3 {
+                margin-bottom: 15px;
+                color: #00f5ff;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .info-panel .controls {
+                opacity: 0.8;
+                line-height: 1.4;
+            }
+
+            .info-panel .controls div {
+                margin-bottom: 5px;
+            }
+
+            .fullscreen-active {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                z-index: 9999;
+                background: #000;
+            }
+
+            .fullscreen-active .sketch-frame {
+                max-width: 100vw;
+                max-height: 100vh;
+            }
+
+            .fullscreen-active .sketch-iframe {
+                width: 100vw;
+                height: 100vh;
+            }
+
+            .instructions {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                background: rgba(0, 0, 0, 0.9);
+                padding: 40px;
+                border-radius: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                max-width: 500px;
+                backdrop-filter: blur(20px);
+            }
+
+            .instructions h2 {
+                color: #00f5ff;
+                margin-bottom: 20px;
+                font-size: 24px;
+            }
+
+            .instructions p {
+                margin-bottom: 15px;
+                line-height: 1.6;
+                opacity: 0.9;
+            }
+
+            .instructions .step {
+                background: rgba(131, 56, 236, 0.1);
+                padding: 15px;
+                border-radius: 10px;
+                margin: 15px 0;
+                border-left: 3px solid #8338ec;
+            }
+
+            .instructions .step strong {
+                color: #8338ec;
+            }
+
+            .run-button {
+                background: linear-gradient(45deg, #8338ec, #00f5ff);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 25px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 20px;
+                font-size: 16px;
+            }
+
+            .run-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(131, 56, 236, 0.3);
+            }
+
+            @media (max-width: 768px) {
+                .sketch-iframe {
+                    width: 95vw;
+                    height: 95vw;
+                    max-height: 80vh;
+                }
+
+                .controls-overlay {
+                    top: 10px;
+                    right: 10px;
+                    gap: 5px;
+                }
+
+                .control-btn {
+                    padding: 8px 12px;
+                    font-size: 11px;
+                }
+
+                .back-btn {
+                    top: 10px;
+                    left: 10px;
+                    padding: 10px 16px;
+                    font-size: 14px;
+                }
+
+                .info-panel {
+                    bottom: 10px;
+                    left: 10px;
+                    right: 10px;
+                    max-width: none;
+                    font-size: 11px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="sketch-container" id="sketchContainer">
+            <a href="index.html" class="back-btn">← Gallery</a>
+
+            <div class="controls-overlay" id="controlsOverlay">
+                <button
+                    class="control-btn"
+                    onclick="refreshSketch()"
+                    title="Refresh sketch"
+                >
+                    🔄 Refresh
+                </button>
+                <button
+                    class="control-btn"
+                    onclick="openInNewWindow()"
+                    title="Open in new window"
+                >
+                    🗗 New Window
+                </button>
+                <button
+                    class="control-btn"
+                    onclick="toggleFullscreen()"
+                    title="Toggle fullscreen"
+                >
+                    ⛶ Fullscreen
+                </button>
+            </div>
+
+            <div class="sketch-frame" id="sketchFrame">
+                <div class="instructions" id="instructions">
+                    <h2>🎨 Creative Coding Sketch</h2>
+                    <p id="sketchTitle">Loading sketch information...</p>
+
+                    <div class="step">
+                        <strong>Step 1:</strong> This sketch runs using
+                        Canvas-Sketch CLI
+                    </div>
+
+                    <div class="step">
+                        <strong>Step 2:</strong> Click the button below to
+                        launch the sketch in a new window
+                    </div>
+
+                    <div class="step">
+                        <strong>Step 3:</strong> The sketch will run with full
+                        Canvas-Sketch features including: <br />• Real-time
+                        animation and interaction <br />• Export functionality
+                        (Cmd/Ctrl + S) <br />• Hot reloading during development
+                    </div>
+
+                    <button
+                        class="run-button"
+                        onclick="runSketch()"
+                        id="runButton"
+                    >
+                        🚀 Launch Sketch
+                    </button>
+
+                    <p style="margin-top: 20px; font-size: 12px; opacity: 0.6">
+                        Note: Sketches run in their native Canvas-Sketch
+                        environment for best performance and features.
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-panel" id="infoPanel" style="display: none">
+                <h3 id="sketchName">Sketch Information</h3>
+                <div class="controls">
+                    <div><strong>Canvas-Sketch CLI</strong></div>
+                    <div>• Cmd/Ctrl + S - Export PNG</div>
+                    <div>• Hot reload enabled</div>
+                    <div>• Full feature support</div>
+                    <div>• Native performance</div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Get sketch file from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const sketchFile = urlParams.get("sketch");
+
+            // Sketch metadata
+            const sketchInfo = {
+                "sketch-0..js": {
+                    name: "Geometric Grid System",
+                    description:
+                        "Minimalist grid compositions with randomized nested rectangles",
+                    animated: false,
+                    interactive: false,
+                },
+                "sketch-02.js": {
+                    name: "Radial Particle System",
+                    description:
+                        "Circular arrangements with dynamic scaling and rotation",
+                    animated: false,
+                    interactive: false,
+                },
+                "sketch-03.js": {
+                    name: "Agent-Based Network",
+                    description:
+                        "Autonomous agents creating dynamic networks through proximity",
+                    animated: true,
+                    interactive: false,
+                },
+                "sketch-04.js": {
+                    name: "Interactive Noise Field",
+                    description:
+                        "Real-time Perlin noise manipulation with Tweakpane controls",
+                    animated: true,
+                    interactive: true,
+                },
+                "sketch-05.js": {
+                    name: "Generative Typography",
+                    description:
+                        "ASCII art through pixel sampling and character mapping",
+                    animated: false,
+                    interactive: true,
+                },
+                "sketch-06.js": {
+                    name: "Interactive Typography Art",
+                    description:
+                        "Animated text visualization with dynamic character rendering",
+                    animated: true,
+                    interactive: true,
+                },
+                "fractal-tree.js": {
+                    name: "Recursive Fractal Tree",
+                    description:
+                        "Self-similar branching structures with subtle wind animation",
+                    animated: true,
+                    interactive: false,
+                },
+                "cellular-automata.js": {
+                    name: "Conway's Game of Life",
+                    description:
+                        "Cellular automata simulation with interactive controls",
+                    animated: true,
+                    interactive: true,
+                },
+                "wave-interference.js": {
+                    name: "Wave Interference Patterns",
+                    description:
+                        "Physics-based wave visualization with multiple sources",
+                    animated: true,
+                    interactive: true,
+                },
+            };
+
+            let currentSketch = sketchFile;
+            let sketchWindow = null;
+
+            // Initialize
+            document.addEventListener("DOMContentLoaded", () => {
+                if (!sketchFile) {
+                    showError(
+                        "No sketch specified",
+                        "Please select a sketch from the gallery.",
+                    );
+                    return;
+                }
+
+                const info = sketchInfo[sketchFile];
+                if (info) {
+                    document.getElementById("sketchTitle").textContent =
+                        `"${info.name}" - ${info.description}`;
+                    document.getElementById("sketchName").textContent =
+                        info.name;
+
+                    // Update run button text based on sketch features
+                    const features = [];
+                    if (info.animated) features.push("Animated");
+                    if (info.interactive) features.push("Interactive");
+
+                    const runButton = document.getElementById("runButton");
+                    if (features.length > 0) {
+                        runButton.innerHTML = `🚀 Launch ${features.join(" & ")} Sketch`;
+                    }
+                } else {
+                    document.getElementById("sketchTitle").textContent =
+                        `Sketch: ${sketchFile}`;
+                }
+            });
+
+            function runSketch() {
+                if (!currentSketch) return;
+
+                // Simple approach: just show instructions
+                const sketchUrl = "http://localhost:9966/";
+                const windowFeatures =
+                    "width=800,height=600,scrollbars=yes,resizable=yes";
+
+                try {
+                    sketchWindow = window.open(
+                        "about:blank",
+                        "SketchWindow",
+                        windowFeatures,
+                    );
+
+                    if (sketchWindow) {
+                        const sketchTitle =
+                            sketchInfo[currentSketch]?.name || currentSketch;
+
+                        sketchWindow.document.write("<!DOCTYPE html>");
+                        sketchWindow.document.write(
+                            "<html><head><title>" + sketchTitle + "</title>",
+                        );
+                        sketchWindow.document.write(
+                            "<style>body{font-family:monospace;background:#0a0a0a;color:white;padding:40px;line-height:1.6;}",
+                        );
+                        sketchWindow.document.write(
+                            ".command{background:#1a1a1a;padding:15px;margin:10px 0;border-left:3px solid #8338ec;font-family:monospace;}",
+                        );
+                        sketchWindow.document.write(
+                            "h1{color:#00f5ff;}h2{color:#8338ec;}</style></head><body>",
+                        );
+                        sketchWindow.document.write(
+                            "<h1>" + sketchTitle + "</h1>",
+                        );
+                        sketchWindow.document.write(
+                            "<h2>How to run this sketch:</h2>",
+                        );
+                        sketchWindow.document.write(
+                            "<p>1. Open your terminal and navigate to the project directory</p>",
+                        );
+                        sketchWindow.document.write(
+                            "<p>2. Run one of these commands:</p>",
+                        );
+                        sketchWindow.document.write(
+                            '<div class="command">canvas-sketch ' +
+                                currentSketch +
+                                " --open</div>",
+                        );
+                        sketchWindow.document.write(
+                            "<p>OR use the npm script:</p>",
+                        );
+
+                        let scriptName = currentSketch
+                            .replace(".js", "")
+                            .replace("sketch-", "")
+                            .replace("0..", "01");
+                        if (currentSketch.includes("fractal"))
+                            scriptName = "fractal";
+                        if (currentSketch.includes("cellular"))
+                            scriptName = "cellular";
+                        if (currentSketch.includes("wave"))
+                            scriptName = "waves";
+
+                        sketchWindow.document.write(
+                            '<div class="command">npm run sketch:' +
+                                scriptName +
+                                "</div>",
+                        );
+                        sketchWindow.document.write(
+                            "<p>This will open the sketch with full Canvas-Sketch functionality including:</p>",
+                        );
+                        sketchWindow.document.write(
+                            "<ul><li>Real-time animation</li><li>Export with Cmd/Ctrl+S</li><li>Hot reloading</li><li>Interactive controls</li></ul>",
+                        );
+                        sketchWindow.document.write("</body></html>");
+                        sketchWindow.document.close();
+                    } else {
+                        alert(
+                            "Pop-up blocked. Please allow pop-ups for this site to run sketches.",
+                        );
+                    }
+                } catch (error) {
+                    console.error("Error opening sketch window:", error);
+                    alert(
+                        "Unable to open sketch window. Please try running the sketch directly with Canvas-Sketch CLI.",
+                    );
+                }
+            }
+
+            function refreshSketch() {
+                if (sketchWindow && !sketchWindow.closed) {
+                    sketchWindow.location.reload();
+                } else {
+                    runSketch();
+                }
+            }
+
+            function openInNewWindow() {
+                runSketch();
+            }
+
+            function showError(title, message) {
+                const frame = document.getElementById("sketchFrame");
+                frame.innerHTML = `
+                <div class="error">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <a href="index.html">← Back to Gallery</a>
+                </div>
+            `;
+            }
+
+            function toggleFullscreen() {
+                const container = document.getElementById("sketchContainer");
+
+                if (!document.fullscreenElement) {
+                    container.requestFullscreen?.() ||
+                        container.mozRequestFullScreen?.() ||
+                        container.webkitRequestFullscreen?.() ||
+                        container.msRequestFullscreen?.();
+
+                    container.classList.add("fullscreen-active");
+                } else {
+                    document.exitFullscreen?.() ||
+                        document.mozCancelFullScreen?.() ||
+                        document.webkitExitFullscreen?.() ||
+                        document.msExitFullscreen?.();
+
+                    container.classList.remove("fullscreen-active");
+                }
+            }
+
+            // Keyboard shortcuts
+            document.addEventListener("keydown", (e) => {
+                switch (e.key.toLowerCase()) {
+                    case "r":
+                        if (e.metaKey || e.ctrlKey) {
+                            e.preventDefault();
+                            refreshSketch();
+                        }
+                        break;
+                    case "n":
+                        if (e.metaKey || e.ctrlKey) {
+                            e.preventDefault();
+                            runSketch();
+                        }
+                        break;
+                    case "f":
+                        toggleFullscreen();
+                        break;
+                    case "escape":
+                        if (document.fullscreenElement) {
+                            toggleFullscreen();
+                        }
+                        break;
+                    case "enter":
+                    case " ":
+                        if (
+                            document.getElementById("instructions").style
+                                .display !== "none"
+                        ) {
+                            e.preventDefault();
+                            runSketch();
+                        }
+                        break;
+                }
+            });
+
+            // Handle fullscreen changes
+            document.addEventListener("fullscreenchange", () => {
+                const container = document.getElementById("sketchContainer");
+                if (!document.fullscreenElement) {
+                    container.classList.remove("fullscreen-active");
+                }
+            });
+
+            // Auto-hide controls in fullscreen
+            let controlsTimeout;
+            function showControls() {
+                const overlay = document.getElementById("controlsOverlay");
+                const panel = document.getElementById("infoPanel");
+
+                overlay.style.opacity = "1";
+                if (panel.style.display !== "none") {
+                    panel.style.opacity = "1";
+                }
+
+                clearTimeout(controlsTimeout);
+                controlsTimeout = setTimeout(() => {
+                    if (document.fullscreenElement) {
+                        overlay.style.opacity = "0";
+                        if (panel.style.display !== "none") {
+                            panel.style.opacity = "0";
+                        }
+                    }
+                }, 3000);
+            }
+
+            document.addEventListener("mousemove", showControls);
+            document.addEventListener("keydown", showControls);
+
+            // Check if canvas-sketch is available
+            fetch("http://localhost:9966/")
+                .then(() => {
+                    document.getElementById("infoPanel").style.display =
+                        "block";
+                })
+                .catch(() => {
+                    // Canvas-sketch server is not running, that's okay
+                    console.log(
+                        "Canvas-sketch server not detected. Instructions will guide users to start it.",
+                    );
+                });
+
+            // Initial controls visibility
+            showControls();
+        </script>
+    </body>
+</html>

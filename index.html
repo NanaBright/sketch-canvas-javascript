@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Creative Coding Museum | JavaScript Art Gallery</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap&display=fallback"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    "Inter",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                background: #0a0a0a;
+                color: #ffffff;
+                overflow-x: hidden;
+            }
+
+            /* Museum Header */
+            .museum-header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: rgba(10, 10, 10, 0.95);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 1rem 2rem;
+            }
+
+            .header-content {
+                max-width: 1400px;
+                margin: 0 auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .museum-title {
+                font-size: 1.5rem;
+                font-weight: 600;
+                background: linear-gradient(45deg, #00f5ff, #ff006e, #8338ec);
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                animation: titleGlow 3s ease-in-out infinite alternate;
+            }
+
+            @keyframes titleGlow {
+                from {
+                    filter: brightness(1);
+                }
+                to {
+                    filter: brightness(1.2)
+                        drop-shadow(0 0 20px rgba(0, 245, 255, 0.3));
+                }
+            }
+
+            .nav-links {
+                display: flex;
+                gap: 2rem;
+                align-items: center;
+            }
+
+            .nav-links a {
+                color: rgba(255, 255, 255, 0.8);
+                text-decoration: none;
+                font-weight: 400;
+                transition: color 0.3s ease;
+                position: relative;
+            }
+
+            .nav-links a:hover {
+                color: #00f5ff;
+            }
+
+            .nav-links a::after {
+                content: "";
+                position: absolute;
+                bottom: -5px;
+                left: 0;
+                width: 0;
+                height: 2px;
+                background: linear-gradient(45deg, #00f5ff, #8338ec);
+                transition: width 0.3s ease;
+            }
+
+            .nav-links a:hover::after {
+                width: 100%;
+            }
+
+            /* Hero Section */
+            .hero {
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: radial-gradient(
+                    ellipse at center,
+                    rgba(131, 56, 236, 0.1) 0%,
+                    rgba(10, 10, 10, 1) 70%
+                );
+                position: relative;
+                overflow: hidden;
+            }
+
+            .hero-content {
+                text-align: center;
+                max-width: 800px;
+                padding: 0 2rem;
+            }
+
+            .hero h1 {
+                font-size: clamp(3rem, 8vw, 8rem);
+                font-weight: 700;
+                margin-bottom: 1rem;
+                background: linear-gradient(
+                    135deg,
+                    #ffffff 0%,
+                    #00f5ff 50%,
+                    #8338ec 100%
+                );
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                line-height: 1.1;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+                opacity: 0.8;
+                margin-bottom: 2rem;
+                line-height: 1.6;
+            }
+
+            .cta-button {
+                display: inline-block;
+                padding: 1rem 2rem;
+                background: linear-gradient(45deg, #8338ec, #00f5ff);
+                color: white;
+                text-decoration: none;
+                border-radius: 50px;
+                font-weight: 500;
+                transition:
+                    transform 0.3s ease,
+                    box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .cta-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 30px rgba(131, 56, 236, 0.4);
+            }
+
+            .cta-button::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    45deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    transparent
+                );
+                transition: left 0.5s ease;
+            }
+
+            .cta-button:hover::before {
+                left: 100%;
+            }
+
+            /* Floating Animation Elements */
+            .floating-shapes {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+
+            .shape {
+                position: absolute;
+                opacity: 0.1;
+                animation: float 20s ease-in-out infinite;
+            }
+
+            .shape:nth-child(1) {
+                top: 20%;
+                left: 10%;
+                width: 100px;
+                height: 100px;
+                background: #8338ec;
+                border-radius: 50%;
+                animation-delay: 0s;
+            }
+
+            .shape:nth-child(2) {
+                top: 60%;
+                right: 15%;
+                width: 80px;
+                height: 80px;
+                background: #00f5ff;
+                transform: rotate(45deg);
+                animation-delay: -5s;
+            }
+
+            .shape:nth-child(3) {
+                bottom: 30%;
+                left: 20%;
+                width: 120px;
+                height: 120px;
+                background: #ff006e;
+                clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+                animation-delay: -10s;
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0) rotate(0deg);
+                }
+                25% {
+                    transform: translateY(-20px) rotate(90deg);
+                }
+                50% {
+                    transform: translateY(-10px) rotate(180deg);
+                }
+                75% {
+                    transform: translateY(-30px) rotate(270deg);
+                }
+            }
+
+            /* Gallery Section */
+            .gallery-section {
+                padding: 8rem 2rem 4rem;
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+
+            .section-header {
+                text-align: center;
+                margin-bottom: 4rem;
+            }
+
+            .section-title {
+                font-size: 3rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+                background: linear-gradient(45deg, #ffffff, #8338ec);
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .section-subtitle {
+                font-size: 1.1rem;
+                opacity: 0.7;
+                max-width: 600px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }
+
+            /* Masonry Grid */
+            .masonry-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+                margin-bottom: 4rem;
+            }
+
+            .artwork-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.05) 0%,
+                    rgba(255, 255, 255, 0.02) 100%
+                );
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                overflow: hidden;
+                transition: all 0.4s ease;
+                cursor: pointer;
+                position: relative;
+                backdrop-filter: blur(10px);
+            }
+
+            .artwork-card:hover {
+                transform: translateY(-10px);
+                border-color: rgba(131, 56, 236, 0.5);
+                box-shadow: 0 20px 40px rgba(131, 56, 236, 0.2);
+            }
+
+            .card-preview {
+                width: 100%;
+                height: 250px;
+                background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .card-preview canvas {
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 10px;
+            }
+
+            .preview-placeholder {
+                font-family:
+                    "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code",
+                    "Roboto Mono", Consolas, "Courier New", monospace;
+                font-size: 0.9rem;
+                color: rgba(255, 255, 255, 0.5);
+                text-align: center;
+            }
+
+            .card-content {
+                padding: 1.5rem;
+            }
+
+            .card-title {
+                font-size: 1.3rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                color: #ffffff;
+            }
+
+            .card-description {
+                font-size: 0.95rem;
+                opacity: 0.8;
+                line-height: 1.5;
+                margin-bottom: 1rem;
+            }
+
+            .card-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .tag {
+                background: rgba(131, 56, 236, 0.2);
+                color: #8338ec;
+                padding: 0.3rem 0.8rem;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 500;
+            }
+
+            .card-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .view-button {
+                background: linear-gradient(45deg, #8338ec, #00f5ff);
+                color: white;
+                border: none;
+                padding: 0.7rem 1.5rem;
+                border-radius: 25px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .view-button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 5px 15px rgba(131, 56, 236, 0.4);
+            }
+
+            .complexity {
+                font-size: 0.8rem;
+                opacity: 0.6;
+                font-family:
+                    "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code",
+                    "Roboto Mono", Consolas, "Courier New", monospace;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .museum-header {
+                    padding: 1rem;
+                }
+
+                .header-content {
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .nav-links {
+                    gap: 1rem;
+                }
+
+                .hero-content {
+                    padding: 0 1rem;
+                }
+
+                .gallery-section {
+                    padding: 6rem 1rem 2rem;
+                }
+
+                .masonry-grid {
+                    grid-template-columns: 1fr;
+                    gap: 1.5rem;
+                }
+
+                .section-title {
+                    font-size: 2rem;
+                }
+            }
+
+            /* Loading Animation */
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #0a0a0a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                transition: opacity 0.5s ease;
+            }
+
+            .loading-spinner {
+                width: 60px;
+                height: 60px;
+                border: 3px solid rgba(131, 56, 236, 0.3);
+                border-top: 3px solid #8338ec;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            /* Footer */
+            .footer {
+                background: rgba(255, 255, 255, 0.02);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 3rem 2rem 2rem;
+                text-align: center;
+            }
+
+            .footer-content {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .footer-text {
+                opacity: 0.6;
+                margin-bottom: 1rem;
+            }
+
+            .footer-links {
+                display: flex;
+                justify-content: center;
+                gap: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            .footer-links a {
+                color: rgba(255, 255, 255, 0.6);
+                text-decoration: none;
+                transition: color 0.3s ease;
+            }
+
+            .footer-links a:hover {
+                color: #8338ec;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <header class="museum-header">
+            <div class="header-content">
+                <div class="museum-title">Creative Coding Museum</div>
+                <nav class="nav-links">
+                    <a href="#gallery">Gallery</a>
+                    <a href="#about">About</a>
+                    <a href="#techniques">Techniques</a>
+                    <a
+                        href="https://github.com/NanaBright/sketch-canvas-javascript"
+                        target="_blank"
+                        >GitHub</a
+                    >
+                </nav>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="floating-shapes">
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+            </div>
+            <div class="hero-content">
+                <h1>Generative Art</h1>
+                <p>
+                    Exploring the intersection of mathematics, algorithms, and
+                    creativity through JavaScript. A curated collection of
+                    interactive visual experiments and computational art pieces.
+                </p>
+                <a href="#gallery" class="cta-button">Explore the Collection</a>
+            </div>
+        </section>
+
+        <section class="gallery-section" id="gallery">
+            <div class="section-header">
+                <h2 class="section-title">Featured Artworks</h2>
+                <p class="section-subtitle">
+                    Each piece represents a unique exploration of algorithmic
+                    creativity, from geometric patterns to complex particle
+                    systems.
+                </p>
+            </div>
+
+            <div class="masonry-grid">
+                <!-- Existing Sketches -->
+                <div class="artwork-card" data-sketch="sketch-0..js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                ⬜
+                            </div>
+                            Geometric Grid
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Geometric Grid System</h3>
+                        <p class="card-description">
+                            A minimalist exploration of grid-based compositions
+                            using randomized nested rectangles to create visual
+                            rhythm and depth.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">Grid</span>
+                            <span class="tag">Geometry</span>
+                            <span class="tag">Minimalist</span>
+                        </div>
+                        <div class="card-footer">
+                            <a
+                                href="sketch-runner.html?sketch=sketch-0..js"
+                                class="view-button"
+                                >View Live</a
+                            >
+                            <span class="complexity">Beginner</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="artwork-card" data-sketch="sketch-02.js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                ●
+                            </div>
+                            Radial Composition
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Radial Particle System</h3>
+                        <p class="card-description">
+                            Circular arrangement of dynamic elements with random
+                            scaling and rotation, creating organic visual
+                            textures from mathematical precision.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">Particles</span>
+                            <span class="tag">Animation</span>
+                            <span class="tag">Radial</span>
+                        </div>
+                        <div class="card-footer">
+                            <a
+                                href="sketch-runner.html?sketch=sketch-02.js"
+                                class="view-button"
+                                >View Live</a
+                            >
+                            <span class="complexity">Intermediate</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="artwork-card" data-sketch="sketch-03.js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                ⚡
+                            </div>
+                            Agent Network
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Agent-Based Network</h3>
+                        <p class="card-description">
+                            Autonomous agents creating dynamic networks through
+                            proximity-based connections. A study in emergent
+                            behavior and collective intelligence.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">Agents</span>
+                            <span class="tag">Networks</span>
+                            <span class="tag">Simulation</span>
+                        </div>
+                        <div class="card-footer">
+                            <a
+                                href="sketch-runner.html?sketch=sketch-03.js"
+                                class="view-button"
+                                >View Live</a
+                            >
+                            <span class="complexity">Advanced</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="artwork-card" data-sketch="sketch-04.js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                〰️
+                            </div>
+                            Noise Field
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Interactive Noise Field</h3>
+                        <p class="card-description">
+                            Real-time manipulation of Perlin noise creating
+                            flowing, organic patterns. Features interactive
+                            controls for exploring parameter space.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">Noise</span>
+                            <span class="tag">Interactive</span>
+                            <span class="tag">Flow Field</span>
+                        </div>
+                        <div class="card-footer">
+                            <a
+                                href="sketch-runner.html?sketch=sketch-04.js"
+                                class="view-button"
+                                >View Live</a
+                            >
+                            <span class="complexity">Advanced</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="artwork-card" data-sketch="sketch-05.js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                Ａ
+                            </div>
+                            Typography Art
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Generative Typography</h3>
+                        <p class="card-description">
+                            Transform letters into ASCII art through pixel
+                            sampling and character mapping. Interactive keyboard
+                            input creates dynamic compositions.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">Typography</span>
+                            <span class="tag">ASCII</span>
+                            <span class="tag">Interactive</span>
+                        </div>
+                        <div class="card-footer">
+                            <a
+                                href="sketch-runner.html?sketch=sketch-05.js"
+                                class="view-button"
+                                >View Live</a
+                            >
+                            <span class="complexity">Intermediate</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Conceptual Sketches -->
+                <div class="artwork-card" data-sketch="fractal-tree.js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                🌿
+                            </div>
+                            Fractal Growth
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Recursive Tree Generator</h3>
+                        <p class="card-description">
+                            Self-similar branching structures using recursive
+                            algorithms. Explore nature's patterns through
+                            mathematical recursion and organic growth
+                            simulation.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">Fractals</span>
+                            <span class="tag">Recursion</span>
+                            <span class="tag">Nature</span>
+                        </div>
+                        <div class="card-footer">
+                            <a
+                                href="sketch-runner.html?sketch=fractal-tree.js"
+                                class="view-button"
+                                >View Live</a
+                            >
+                            <span class="complexity">Intermediate</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="artwork-card" data-sketch="wave-interference.js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                🌊
+                            </div>
+                            Wave Physics
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Wave Interference Patterns</h3>
+                        <p class="card-description">
+                            Visualizing wave physics through interference
+                            patterns. Multiple wave sources create complex
+                            harmonics and standing wave phenomena.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">Physics</span>
+                            <span class="tag">Waves</span>
+                            <span class="tag">Mathematics</span>
+                        </div>
+                        <div class="card-footer">
+                            <a
+                                href="sketch-runner.html?sketch=wave-interference.js"
+                                class="view-button"
+                                >View Live</a
+                            >
+                            <span class="complexity">Advanced</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="artwork-card" data-sketch="cellular-automata.js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                ▣
+                            </div>
+                            Cellular Evolution
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Cellular Automata</h3>
+                        <p class="card-description">
+                            Conway's Game of Life and custom rule sets. Watch
+                            simple rules give rise to complex emergent behaviors
+                            and patterns.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">Automata</span>
+                            <span class="tag">Emergence</span>
+                            <span class="tag">Simulation</span>
+                        </div>
+                        <div class="card-footer">
+                            <a
+                                href="sketch-runner.html?sketch=cellular-automata.js"
+                                class="view-button"
+                                >View Live</a
+                            >
+                            <span class="complexity">Intermediate</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="artwork-card" data-sketch="shader-experiment.js">
+                    <div class="card-preview">
+                        <div class="preview-placeholder">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem">
+                                ✨
+                            </div>
+                            GPU Shaders
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">WebGL Shader Art</h3>
+                        <p class="card-description">
+                            Harnessing GPU power for real-time visual effects.
+                            Fragment shaders create complex visual phenomena
+                            impossible with traditional canvas methods.
+                        </p>
+                        <div class="card-tags">
+                            <span class="tag">WebGL</span>
+                            <span class="tag">Shaders</span>
+                            <span class="tag">GPU</span>
+                        </div>
+                        <div class="card-footer">
+                            <a href="#" class="view-button">Coming Soon</a>
+                            <span class="complexity">Expert</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p class="footer-text">
+                    Creative Coding Museum - Exploring the Art of Algorithmic
+                    Creativity
+                </p>
+                <div class="footer-links">
+                    <a href="#about">About</a>
+                    <a href="#gallery">Gallery</a>
+                    <a href="https://github.com" target="_blank">Source Code</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <p style="opacity: 0.4; font-size: 0.9rem">
+                    © 2024 Creative Coding Museum. Built with JavaScript &
+                    Canvas-Sketch
+                </p>
+            </div>
+        </footer>
+
+        <script>
+            // Loading animation
+            window.addEventListener("load", () => {
+                const loadingOverlay =
+                    document.getElementById("loadingOverlay");
+                setTimeout(() => {
+                    loadingOverlay.classList.add("hidden");
+                }, 1000);
+            });
+
+            // Smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+                anchor.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(
+                        this.getAttribute("href"),
+                    );
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                        });
+                    }
+                });
+            });
+
+            // Card hover effects
+            document.querySelectorAll(".artwork-card").forEach((card) => {
+                card.addEventListener("mouseenter", () => {
+                    card.style.transform = "translateY(-10px) scale(1.02)";
+                });
+
+                card.addEventListener("mouseleave", () => {
+                    card.style.transform = "translateY(0) scale(1)";
+                });
+            });
+
+            // Header scroll effect
+            window.addEventListener("scroll", () => {
+                const header = document.querySelector(".museum-header");
+                if (window.scrollY > 100) {
+                    header.style.background = "rgba(10, 10, 10, 0.98)";
+                } else {
+                    header.style.background = "rgba(10, 10, 10, 0.95)";
+                }
+            });
+
+            // Parallax effect for floating shapes
+            window.addEventListener("scroll", () => {
+                const shapes = document.querySelectorAll(".shape");
+                const scrolled = window.pageYOffset;
+                shapes.forEach((shape, index) => {
+                    const rate = scrolled * (0.5 + index * 0.1);
+                    shape.style.transform = `translateY(${rate}px) rotate(${rate * 0.1}deg)`;
+                });
+            });
+
+            // Add some interactive sparkle effects
+            document.addEventListener("mousemove", (e) => {
+                if (Math.random() > 0.95) {
+                    createSparkle(e.clientX, e.clientY);
+                }
+            });
+
+            function createSparkle(x, y) {
+                const sparkle = document.createElement("div");
+                sparkle.style.position = "fixed";
+                sparkle.style.left = x + "px";
+                sparkle.style.top = y + "px";
+                sparkle.style.width = "4px";
+                sparkle.style.height = "4px";
+                sparkle.style.background = "#8338ec";
+                sparkle.style.borderRadius = "50%";
+                sparkle.style.pointerEvents = "none";
+                sparkle.style.zIndex = "9999";
+                sparkle.style.animation = "sparkle 0.8s ease-out forwards";
+
+                document.body.appendChild(sparkle);
+
+                setTimeout(() => {
+                    sparkle.remove();
+                }, 800);
+            }
+
+            // Add sparkle animation
+            const sparkleCSS = `
+        @keyframes sparkle {
+            0% {
+                opacity: 1;
+                transform: scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-20px);
+            }
+        }`;
+
+            const style = document.createElement("style");
+            style.textContent = sparkleCSS;
+            document.head.appendChild(style);
+        </script>
+    </body>
+</html>

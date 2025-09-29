@@ -1,23 +1,20 @@
-const canvasSketch = require('canvas-sketch');
-const random = require('canvas-sketch-util/random');
-const math = require('canvas-sketch-util/math');
-
-
+const canvasSketch = require("canvas-sketch");
+const random = require("canvas-sketch-util/random");
+const math = require("canvas-sketch-util/math");
 
 const settings = {
   dimensions: [2050, 1280],
-  animate: true
+  animate: true,
 };
-
 
 let manager;
 
-let text = 'MUSE';
+let text = "MUSE";
 let fontSize = 100;
-let fontFamily = 'serif';
+let fontFamily = "serif";
 
-const typeCanvas = document.createElement('canvas');
-const typeContext = typeCanvas.getContext('2d');
+const typeCanvas = document.createElement("canvas");
+const typeContext = typeCanvas.getContext("2d");
 
 const sketch = ({ context, width, height }) => {
   const cell = 10;
@@ -29,20 +26,21 @@ const sketch = ({ context, width, height }) => {
   typeCanvas.height = rows;
 
   return ({ context, width, height }) => {
-    typeContext.fillStyle = 'black';
+    typeContext.fillStyle = "black";
     typeContext.fillRect(0, 0, cols, rows);
 
-    fontSize = cols * .38;
+    fontSize = cols * 0.38;
 
-    typeContext.fillStyle = 'white';
+    typeContext.fillStyle = "white";
     typeContext.font = `${fontSize}px ${fontFamily}`;
-    typeContext.textBaseline = 'top';
+    typeContext.textBaseline = "top";
 
     const metrics = typeContext.measureText(text);
     const mx = metrics.actualBoundingBoxLeft * 3;
     const my = metrics.actualBoundingBoxAscent * -1;
     const mw = metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight;
-    const mh = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+    const mh =
+      metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
     const tx = (cols - mw) * 1 - mx;
     const ty = (rows - mh) * 0.5 - my;
@@ -59,12 +57,11 @@ const sketch = ({ context, width, height }) => {
 
     const typeData = typeContext.getImageData(0, 0, cols, rows).data;
 
-
-    context.fillStyle = '#351c5a';
+    context.fillStyle = "#351c5a";
     context.fillRect(0, 0, width, height);
 
-    context.textBaseline = 'middle';
-    context.textAlign = 'center';
+    context.textBaseline = "middle";
+    context.textAlign = "center";
 
     // context.drawImage(typeCanvas, 0, 0);
 
@@ -85,7 +82,7 @@ const sketch = ({ context, width, height }) => {
       context.font = `${cell * 3}px ${fontFamily}`;
       if (Math.random() < 0.1) context.font = `${cell * 10}px ${fontFamily}`;
 
-      context.fillStyle = 'white';
+      context.fillStyle = "white";
 
       context.save();
       context.translate(x, y);
@@ -96,7 +93,6 @@ const sketch = ({ context, width, height }) => {
       context.fillText(glyph, 0, 0);
 
       context.restore();
-
     }
   };
 };
@@ -104,44 +100,35 @@ const sketch = ({ context, width, height }) => {
 // animation
 
 const animate = () => {
-  console.log('animating');
+  console.log("animating");
   requestAnimationFrame(animate);
 };
-
 
 // ends
 
 const getGlyph = (v) => {
-  if (v < 50) return '';
-  if (v < 100) return '.';
-  if (v < 150) return '-';
-  if (v < 200) return '+';
+  if (v < 50) return "";
+  if (v < 100) return ".";
+  if (v < 150) return "-";
+  if (v < 200) return "+";
 
-  const glyphs = '_= / '.split('');
+  const glyphs = "_= / ".split("");
 
   return random.pick(glyphs);
 };
-
-
-
 
 const onKeyUp = (e) => {
   text = e.key.toUpperCase();
   manager.render();
 };
 
-document.addEventListener('keyup', onKeyUp);
-
+document.addEventListener("keyup", onKeyUp);
 
 const start = async () => {
   manager = await canvasSketch(sketch, settings);
 };
 
 start();
-
-
-
-
 
 /*
 const url = 'https://picsum.photos/200';

@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Sketch Viewer | Creative Coding Museum</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Inter", sans-serif;
+                background: #0a0a0a;
+                color: #ffffff;
+                overflow-x: hidden;
+            }
+
+            /* Header */
+            .viewer-header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: rgba(10, 10, 10, 0.95);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 1rem 2rem;
+            }
+
+            .header-content {
+                max-width: 1400px;
+                margin: 0 auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .back-button {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: rgba(255, 255, 255, 0.8);
+                text-decoration: none;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .back-button:hover {
+                color: #00f5ff;
+                border-color: rgba(0, 245, 255, 0.3);
+                background: rgba(0, 245, 255, 0.05);
+            }
+
+            .sketch-title {
+                font-size: 1.2rem;
+                font-weight: 600;
+                background: linear-gradient(45deg, #00f5ff, #8338ec);
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .controls-button {
+                background: linear-gradient(45deg, #8338ec, #00f5ff);
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .controls-button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 5px 15px rgba(131, 56, 236, 0.4);
+            }
+
+            /* Main Content */
+            .viewer-content {
+                margin-top: 80px;
+                min-height: calc(100vh - 80px);
+                display: flex;
+                flex-direction: column;
+            }
+
+            .sketch-container {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 2rem;
+                position: relative;
+            }
+
+            .sketch-frame {
+                background: #1a1a1a;
+                border-radius: 15px;
+                padding: 2rem;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                position: relative;
+                max-width: 100%;
+                max-height: 80vh;
+                overflow: hidden;
+            }
+
+            .sketch-canvas {
+                display: block;
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 10px;
+            }
+
+            .loading-sketch {
+                width: 600px;
+                height: 600px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+                border-radius: 10px;
+                font-family: "JetBrains Mono", monospace;
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border: 3px solid rgba(131, 56, 236, 0.3);
+                border-top: 3px solid #8338ec;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 1rem;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Info Panel */
+            .info-panel {
+                background: rgba(255, 255, 255, 0.02);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 2rem;
+            }
+
+            .info-content {
+                max-width: 1200px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 3rem;
+            }
+
+            .sketch-description {
+                opacity: 0.8;
+                line-height: 1.6;
+                margin-bottom: 1.5rem;
+            }
+
+            .sketch-details {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+
+            .detail-item {
+                background: rgba(255, 255, 255, 0.05);
+                padding: 1rem;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .detail-label {
+                font-size: 0.9rem;
+                opacity: 0.6;
+                margin-bottom: 0.5rem;
+                font-family: "JetBrains Mono", monospace;
+            }
+
+            .detail-value {
+                font-weight: 500;
+            }
+
+            .techniques-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .technique-tag {
+                background: rgba(131, 56, 236, 0.2);
+                color: #8338ec;
+                padding: 0.3rem 0.8rem;
+                border-radius: 15px;
+                font-size: 0.8rem;
+                font-weight: 500;
+            }
+
+            .code-section {
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 1.5rem;
+            }
+
+            .code-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .code-title {
+                font-family: "JetBrains Mono", monospace;
+                font-weight: 600;
+            }
+
+            .view-source-btn {
+                background: rgba(0, 245, 255, 0.1);
+                color: #00f5ff;
+                border: 1px solid rgba(0, 245, 255, 0.3);
+                padding: 0.4rem 0.8rem;
+                border-radius: 15px;
+                font-size: 0.8rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .view-source-btn:hover {
+                background: rgba(0, 245, 255, 0.2);
+            }
+
+            .code-preview {
+                font-family: "JetBrains Mono", monospace;
+                font-size: 0.85rem;
+                line-height: 1.4;
+                background: #000;
+                padding: 1rem;
+                border-radius: 8px;
+                overflow-x: auto;
+                color: #e0e0e0;
+            }
+
+            .code-keyword {
+                color: #8338ec;
+            }
+
+            .code-string {
+                color: #00f5ff;
+            }
+
+            .code-comment {
+                color: #666;
+                font-style: italic;
+            }
+
+            /* Controls Panel */
+            .controls-panel {
+                position: fixed;
+                top: 80px;
+                right: -300px;
+                width: 280px;
+                height: calc(100vh - 80px);
+                background: rgba(10, 10, 10, 0.95);
+                backdrop-filter: blur(20px);
+                border-left: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 2rem;
+                transition: right 0.3s ease;
+                overflow-y: auto;
+            }
+
+            .controls-panel.active {
+                right: 0;
+            }
+
+            .controls-title {
+                font-weight: 600;
+                margin-bottom: 1.5rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .control-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .control-label {
+                font-size: 0.9rem;
+                margin-bottom: 0.5rem;
+                opacity: 0.8;
+            }
+
+            .control-input {
+                width: 100%;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 5px;
+                padding: 0.5rem;
+                color: white;
+                font-family: inherit;
+            }
+
+            .control-input:focus {
+                outline: none;
+                border-color: #8338ec;
+            }
+
+            /* Error State */
+            .error-message {
+                color: #ff4757;
+                background: rgba(255, 71, 87, 0.1);
+                border: 1px solid rgba(255, 71, 87, 0.3);
+                padding: 1rem;
+                border-radius: 10px;
+                margin: 1rem 0;
+                font-family: "JetBrains Mono", monospace;
+                font-size: 0.9rem;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .viewer-header {
+                    padding: 1rem;
+                }
+
+                .header-content {
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .sketch-container {
+                    padding: 1rem;
+                }
+
+                .sketch-frame {
+                    padding: 1rem;
+                }
+
+                .info-content {
+                    grid-template-columns: 1fr;
+                    gap: 2rem;
+                }
+
+                .controls-panel {
+                    width: 100%;
+                    right: -100%;
+                }
+            }
+
+            .fullscreen-btn {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                background: rgba(0, 0, 0, 0.7);
+                color: white;
+                border: none;
+                padding: 0.5rem;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 1.2rem;
+            }
+
+            .fullscreen-btn:hover {
+                background: rgba(0, 0, 0, 0.9);
+            }
+        </style>
+    </head>
+    <body>
+        <header class="viewer-header">
+            <div class="header-content">
+                <a href="index.html" class="back-button">
+                    <span>←</span>
+                    Back to Gallery
+                </a>
+                <div class="sketch-title" id="sketchTitle">
+                    Loading Sketch...
+                </div>
+                <button class="controls-button" onclick="toggleControls()">
+                    Controls
+                </button>
+            </div>
+        </header>
+
+        <main class="viewer-content">
+            <div class="sketch-container">
+                <div class="sketch-frame" id="sketchFrame">
+                    <div class="loading-sketch">
+                        <div style="text-align: center">
+                            <div class="loading-spinner"></div>
+                            <div>Loading creative coding sketch...</div>
+                        </div>
+                    </div>
+                    <button
+                        class="fullscreen-btn"
+                        onclick="toggleFullscreen()"
+                        title="Toggle Fullscreen"
+                    >
+                        ⛶
+                    </button>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-content">
+                    <div class="sketch-info">
+                        <h2 id="sketchName">Sketch Name</h2>
+                        <p class="sketch-description" id="sketchDescription">
+                            Loading sketch information...
+                        </p>
+
+                        <div class="sketch-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Technique</div>
+                                <div class="detail-value" id="sketchTechnique">
+                                    -
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Complexity</div>
+                                <div class="detail-value" id="sketchComplexity">
+                                    -
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Animation</div>
+                                <div class="detail-value" id="sketchAnimation">
+                                    -
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Interactive</div>
+                                <div
+                                    class="detail-value"
+                                    id="sketchInteractive"
+                                >
+                                    -
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="techniques-list" id="techniquesList">
+                            <!-- Tags will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="code-section">
+                        <div class="code-header">
+                            <div class="code-title">Source Preview</div>
+                            <button
+                                class="view-source-btn"
+                                onclick="viewFullSource()"
+                            >
+                                View Full Source
+                            </button>
+                        </div>
+                        <div class="code-preview" id="codePreview">
+                            <span class="code-comment"
+                                >// Loading source code...</span
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="controls-panel" id="controlsPanel">
+            <div class="controls-title">Sketch Controls</div>
+            <div class="control-group">
+                <div class="control-label">Export Image</div>
+                <button
+                    class="control-input"
+                    onclick="exportImage()"
+                    style="cursor: pointer"
+                >
+                    Save PNG (Cmd+S)
+                </button>
+            </div>
+            <div class="control-group">
+                <div class="control-label">Regenerate</div>
+                <button
+                    class="control-input"
+                    onclick="regenerateSketch()"
+                    style="cursor: pointer"
+                >
+                    New Variation
+                </button>
+            </div>
+            <div class="control-group">
+                <div class="control-label">Animation</div>
+                <button
+                    class="control-input"
+                    onclick="toggleAnimation()"
+                    id="animationToggle"
+                    style="cursor: pointer"
+                >
+                    Pause/Play
+                </button>
+            </div>
+            <div id="customControls">
+                <!-- Custom controls will be injected here based on the sketch -->
+            </div>
+        </div>
+
+        <script>
+            let currentSketch = null;
+            let sketchManager = null;
+            let isAnimating = true;
+
+            // Sketch metadata
+            const sketchData = {
+                "sketch-0..js": {
+                    name: "Geometric Grid System",
+                    description:
+                        "A minimalist exploration of grid-based compositions using randomized nested rectangles to create visual rhythm and depth.",
+                    technique: "Grid Generation",
+                    complexity: "Beginner",
+                    animation: "Static",
+                    interactive: "No",
+                    tags: ["Grid", "Geometry", "Minimalist", "Canvas2D"],
+                    preview: `const canvasSketch = require('canvas-sketch');
+
+const settings = {
+  dimensions: [ 1080, 1080 ]
+};
+
+const sketch = () => {
+  return ({ context, width, height }) => {
+    context.fillStyle = 'white';
+    context.fillRect(0, 0, width, height);
+
+    const w = width * 0.10;
+    const h = height * 0.10;
+    const gap = width * 0.03;
+
+    for (let i = 0; i < 5; i++) {
+      for (let j = 0; j < 5; j++) {
+        let x = 100 + (w + gap) * i;
+        let y = 100 + (h + gap) * j;
+
+        context.beginPath();
+        context.rect(x, y, w, h);
+        context.stroke();
+
+        if (Math.random() > 0.5) {
+          context.beginPath();
+          context.rect(x + off/2, y + off/2, w - off, h - off);
+          context.stroke();
+        }
+      }
+    }
+  };
+};`,
+                },
+                "sketch-02.js": {
+                    name: "Radial Particle System",
+                    description:
+                        "Circular arrangement of dynamic elements with random scaling and rotation, creating organic visual textures from mathematical precision.",
+                    technique: "Particle Systems",
+                    complexity: "Intermediate",
+                    animation: "Static",
+                    interactive: "No",
+                    tags: ["Particles", "Radial", "Mathematics", "Canvas2D"],
+                    preview: `const canvasSketch = require('canvas-sketch');
+const math = require('canvas-sketch-util/math');
+const random = require('canvas-sketch-util/random');
+
+const settings = {
+    dimensions: [1080, 1080]
+};
+
+const sketch = () => {
+    return ({ context, width, height }) => {
+        const cx = width * 0.5;
+        const cy = height * 0.5;
+        const radius = width * 0.3;
+        const num = 60;
+
+        for (let i = 0; i < num; i++) {
+            const slice = math.degToRad(360 / num);
+            const angle = slice * i;
+
+            const x = cx + radius * Math.sin(angle);
+            const y = cy + radius * Math.cos(angle);
+
+            context.save();
+            context.translate(x, y);
+            context.rotate(-angle);
+            context.scale(random.range(0.1, 2), random.range(0.2, 0.5));
+
+            // Draw particle...
+            context.restore();
+        }
+    };
+};`,
+                },
+                "sketch-03.js": {
+                    name: "Agent-Based Network",
+                    description:
+                        "Autonomous agents creating dynamic networks through proximity-based connections. A study in emergent behavior and collective intelligence.",
+                    technique: "Agent Systems",
+                    complexity: "Advanced",
+                    animation: "Animated",
+                    interactive: "No",
+                    tags: ["Agents", "Networks", "Simulation", "Animation"],
+                    preview: `const canvasSketch = require('canvas-sketch');
+const random = require('canvas-sketch-util/random');
+
+const settings = {
+    dimensions: [ 1080, 1080 ],
+    animate: true
+};
+
+class Agent {
+    constructor(x, y) {
+        this.pos = new Vector(x, y);
+        this.vel = new Vector(random.range(-1, 1), random.range(-1, 1));
+        this.radius = random.range(12, 12);
+    }
+
+    update() {
+        this.pos.x += this.vel.x;
+        this.pos.y += this.vel.y;
+    }
+
+    draw(context) {
+        context.save();
+        context.translate(this.pos.x, this.pos.y);
+        context.beginPath();
+        context.arc(0, 0, this.radius, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+    }
+}`,
+                },
+                "sketch-04.js": {
+                    name: "Interactive Noise Field",
+                    description:
+                        "Real-time manipulation of Perlin noise creating flowing, organic patterns. Features interactive controls for exploring parameter space.",
+                    technique: "Noise Fields",
+                    complexity: "Advanced",
+                    animation: "Animated",
+                    interactive: "Yes",
+                    tags: ["Noise", "Interactive", "Flow Field", "Tweakpane"],
+                    preview: `const canvasSketch = require('canvas-sketch');
+const random = require('canvas-sketch-util/random');
+const math = require('canvas-sketch-util/math');
+const Tweakpane = require('tweakpane');
+
+const params = {
+  cols: 10,
+  rows: 10,
+  scaleMin: 1,
+  scaleMax: 30,
+  freq: 0.001,
+  amp: 0.2,
+  frame: 0,
+  animate: true
+};
+
+const sketch = () => {
+  return ({ context, width, height, frame }) => {
+    const cols = params.cols;
+    const rows = params.rows;
+
+    for (let i = 0; i < cols * rows; i++) {
+      const n = random.noise3D(x, y, frame * 10, params.freq);
+      const angle = n * Math.PI * params.amp;
+      const scale = math.mapRange(n, -1, 1, params.scaleMin, params.scaleMax);
+
+      // Draw noise-driven lines...
+    }
+  };
+};`,
+                },
+                "sketch-05.js": {
+                    name: "Generative Typography",
+                    description:
+                        "Transform letters into ASCII art through pixel sampling and character mapping. Interactive keyboard input creates dynamic compositions.",
+                    technique: "Typography Art",
+                    complexity: "Intermediate",
+                    animation: "Static",
+                    interactive: "Yes",
+                    tags: [
+                        "Typography",
+                        "ASCII",
+                        "Interactive",
+                        "Pixel Sampling",
+                    ],
+                    preview: `const canvasSketch = require('canvas-sketch');
+const random = require('canvas-sketch-util/random');
+
+let text = 'A';
+let fontSize = 1200;
+let fontFamily = 'serif';
+
+const typeCanvas = document.createElement('canvas');
+const typeContext = typeCanvas.getContext('2d');
+
+const sketch = ({ context, width, height }) => {
+  return ({ context, width, height }) => {
+    const cell = 20;
+    const cols = Math.floor(width / cell);
+    const rows = Math.floor(height / cell);
+
+    // Render text to hidden canvas
+    typeContext.font = \`\${fontSize}px \${fontFamily}\`;
+    typeContext.fillText(text, 0, 0);
+
+    const typeData = typeContext.getImageData(0, 0, cols, rows).data;
+
+    // Convert pixels to ASCII
+    for (let i = 0; i < numCells; i++) {
+      const glyph = getGlyph(typeData[i * 4]);
+      context.fillText(glyph, x, y);
+    }
+  };
+};`,
+                },
+                "sketch-06.js": {
+                    name: "Interactive Typography Art",
+                    description:
+                        "Transform text into dynamic visual compositions using pixel sampling and character mapping. Features real-time keyboard interaction.",
+                    technique: "Text Animation",
+                    complexity: "Intermediate",
+                    animation: "Animated",
+                    interactive: "Yes",
+                    tags: [
+                        "Typography",
+                        "Animation",
+                        "Interactive",
+                        "Pixel Art",
+                    ],
+                    preview: `const canvasSketch = require('canvas-sketch');
+const random = require('canvas-sketch-util/random');
+
+let text = 'MUSE';
+let fontSize = 100;
+let fontFamily = 'serif';
+
+const typeCanvas = document.createElement('canvas');
+const typeContext = typeCanvas.getContext('2d');
+
+const sketch = ({ context, width, height }) => {
+  return ({ context, width, height }) => {
+    const cell = 10;
+    const cols = Math.floor(width / cell);
+    const rows = Math.floor(height / cell);
+
+    // Render text and sample pixels
+    typeContext.font = \`\${fontSize}px \${fontFamily}\`;
+    typeContext.fillText(text, 0, 0);
+
+    const typeData = typeContext.getImageData(0, 0, cols, rows).data;
+
+    // Convert to animated glyphs
+    for (let i = 0; i < cols * rows; i++) {
+      const glyph = getGlyph(typeData[i * 4]);
+      context.fillText(glyph, x, y);
+    }
+  };
+};`,
+                },
+                "fractal-tree.js": {
+                    name: "Recursive Fractal Tree",
+                    description:
+                        "Self-similar branching structures using recursive algorithms. Explore nature's patterns through mathematical recursion with subtle wind animation.",
+                    technique: "Recursive Fractals",
+                    complexity: "Intermediate",
+                    animation: "Animated",
+                    interactive: "No",
+                    tags: ["Fractals", "Recursion", "Nature", "Animation"],
+                    preview: `const canvasSketch = require('canvas-sketch');
+const random = require('canvas-sketch-util/random');
+const math = require('canvas-sketch-util/math');
+
+const params = {
+  depth: 8,
+  branchAngle: 25,
+  branchLength: 0.7,
+  initialLength: 200,
+  windStrength: 0.02,
+  leafColor: '#4ade80',
+  branchColor: '#8b4513'
+};
+
+function drawBranch(ctx, x, y, length, angle, depth, time) {
+  if (depth === 0) return;
+
+  const windOffset = Math.sin(time * 2 + angle * 3) * params.windStrength * depth;
+  const endX = x + Math.cos(angle + windOffset) * length;
+  const endY = y + Math.sin(angle + windOffset) * length;
+
+  // Draw branch
+  ctx.strokeStyle = params.branchColor;
+  ctx.lineWidth = depth * 2;
+  ctx.moveTo(x, y);
+  ctx.lineTo(endX, endY);
+  ctx.stroke();
+
+  // Recursive calls for child branches
+  if (depth > 1) {
+    const newLength = length * params.branchLength;
+    const angleVariation = math.degToRad(params.branchAngle);
+
+    drawBranch(ctx, endX, endY, newLength, angle - angleVariation, depth - 1, time);
+    drawBranch(ctx, endX, endY, newLength, angle + angleVariation, depth - 1, time);
+  }
+}`,
+                },
+                "cellular-automata.js": {
+                    name: "Conway's Game of Life",
+                    description:
+                        "Watch simple rules give rise to complex emergent behaviors and patterns. Classic cellular automata simulation with interactive controls.",
+                    technique: "Cellular Automata",
+                    complexity: "Intermediate",
+                    animation: "Animated",
+                    interactive: "Yes",
+                    tags: [
+                        "Automata",
+                        "Emergence",
+                        "Simulation",
+                        "Interactive",
+                    ],
+                    preview: `const canvasSketch = require('canvas-sketch');
+
+const params = {
+  cellSize: 8,
+  speed: 200,
+  density: 0.3,
+  colors: { alive: '#00f5ff', dead: '#0a0a0a' }
+};
+
+let grid = [];
+let cols, rows;
+
+function updateGrid() {
+  const newGrid = [];
+
+  for (let i = 0; i < cols; i++) {
+    newGrid[i] = [];
+    for (let j = 0; j < rows; j++) {
+      const neighbors = countNeighbors(i, j);
+      const currentCell = grid[i][j];
+
+      // Conway's rules:
+      if (currentCell === 1) {
+        newGrid[i][j] = (neighbors === 2 || neighbors === 3) ? 1 : 0;
+      } else {
+        newGrid[i][j] = (neighbors === 3) ? 1 : 0;
+      }
+    }
+  }
+
+  grid = newGrid;
+}`,
+                },
+                "wave-interference.js": {
+                    name: "Wave Interference Patterns",
+                    description:
+                        "Visualizing wave physics through interference patterns. Multiple wave sources create complex harmonics and standing wave phenomena with real-time interaction.",
+                    technique: "Wave Physics",
+                    complexity: "Advanced",
+                    animation: "Animated",
+                    interactive: "Yes",
+                    tags: ["Physics", "Waves", "Mathematics", "Interactive"],
+                    preview: `const canvasSketch = require('canvas-sketch');
+const math = require('canvas-sketch-util/math');
+
+const params = {
+  numSources: 4,
+  amplitude: 80,
+  frequency: 0.02,
+  speed: 0.5,
+  damping: 0.995
+};
+
+let sources = [];
+
+function drawWaveField(context, width, height, time) {
+  for (let x = 0; x < width; x += 2) {
+    for (let y = 0; y < height; y += 2) {
+      let totalAmplitude = 0;
+
+      // Calculate wave contribution from each source
+      for (let source of sources) {
+        const distance = Math.sqrt(
+          Math.pow(x - source.x, 2) + Math.pow(y - source.y, 2)
+        );
+
+        const wave = source.amplitude * Math.sin(
+          source.frequency * time * params.speed -
+          source.frequency * distance * 0.01 + source.phase
+        );
+
+        const damping = Math.pow(params.damping, distance * 0.1);
+        totalAmplitude += wave * damping;
+      }
+
+      // Convert to color
+      const intensity = Math.abs(totalAmplitude / params.amplitude);
+      const color = hslToRgb((totalAmplitude + 1) * 180, 80, intensity * 60);
+    }
+  }
+}`,
+                },
+            };
+
+            // Initialize
+            document.addEventListener("DOMContentLoaded", () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                currentSketch = urlParams.get("sketch") || "sketch-0..js";
+                loadSketch(currentSketch);
+            });
+
+            function loadSketch(sketchFile) {
+                const data = sketchData[sketchFile];
+                if (!data) {
+                    showError("Sketch not found");
+                    return;
+                }
+
+                // Update UI
+                document.getElementById("sketchTitle").textContent = data.name;
+                document.getElementById("sketchName").textContent = data.name;
+                document.getElementById("sketchDescription").textContent =
+                    data.description;
+                document.getElementById("sketchTechnique").textContent =
+                    data.technique;
+                document.getElementById("sketchComplexity").textContent =
+                    data.complexity;
+                document.getElementById("sketchAnimation").textContent =
+                    data.animation;
+                document.getElementById("sketchInteractive").textContent =
+                    data.interactive;
+
+                // Update tags
+                const tagsList = document.getElementById("techniquesList");
+                tagsList.innerHTML = "";
+                data.tags.forEach((tag) => {
+                    const tagEl = document.createElement("span");
+                    tagEl.className = "technique-tag";
+                    tagEl.textContent = tag;
+                    tagsList.appendChild(tagEl);
+                });
+
+                // Update code preview
+                document.getElementById("codePreview").innerHTML =
+                    highlightCode(data.preview);
+
+                // Load actual sketch
+                loadSketchCanvas(sketchFile);
+            }
+
+            function loadSketchCanvas(sketchFile) {
+                const frame = document.getElementById("sketchFrame");
+
+                // Create iframe to run the sketch
+                const iframe = document.createElement("iframe");
+                iframe.style.width = "600px";
+                iframe.style.height = "600px";
+                iframe.style.border = "none";
+                iframe.style.borderRadius = "10px";
+                iframe.style.background = "#fff";
+
+                // For demo purposes, we'll create a simple canvas preview
+                // In a real implementation, you'd run the actual canvas-sketch code
+                createSketchPreview(frame, sketchFile);
+            }
+
+            function createSketchPreview(container, sketchFile) {
+                container.innerHTML = "";
+
+                const canvas = document.createElement("canvas");
+                canvas.width = 600;
+                canvas.height = 600;
+                canvas.style.borderRadius = "10px";
+                canvas.className = "sketch-canvas";
+
+                const ctx = canvas.getContext("2d");
+
+                // Create preview based on sketch type
+                switch (sketchFile) {
+                    case "sketch-0..js":
+                        drawGridPreview(ctx, canvas.width, canvas.height);
+                        break;
+                    case "sketch-02.js":
+                        drawRadialPreview(ctx, canvas.width, canvas.height);
+                        break;
+                    case "sketch-03.js":
+                        drawAgentPreview(ctx, canvas.width, canvas.height);
+                        break;
+                    case "sketch-04.js":
+                        drawNoisePreview(ctx, canvas.width, canvas.height);
+                        break;
+                    case "sketch-05.js":
+                        drawTypographyPreview(ctx, canvas.width, canvas.height);
+                        break;
+                    case "sketch-06.js":
+                        drawAnimatedTypographyPreview(
+                            ctx,
+                            canvas.width,
+                            canvas.height,
+                        );
+                        break;
+                    case "fractal-tree.js":
+                        drawFractalPreview(ctx, canvas.width, canvas.height);
+                        break;
+                    case "cellular-automata.js":
+                        drawCellularPreview(ctx, canvas.width, canvas.height);
+                        break;
+                    case "wave-interference.js":
+                        drawWavePreview(ctx, canvas.width, canvas.height);
+                        break;
+                    default:
+                        drawPlaceholder(ctx, canvas.width, canvas.height);
+                }
+
+                container.appendChild(canvas);
+
+                // Add fullscreen button
+                const fullscreenBtn = document.createElement("button");
+                fullscreenBtn.className = "fullscreen-btn";
+                fullscreenBtn.innerHTML = "⛶";
+                fullscreenBtn.onclick = toggleFullscreen;
+                container.appendChild(fullscreenBtn);
+            }
+
+            function drawGridPreview(ctx, width, height) {
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, width, height);
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 2;
+
+                const w = width * 0.08;
+                const h = height * 0.08;
+                const gap = width * 0.02;
+                const startX = (width - (5 * w + 4 * gap)) / 2;
+                const startY = (height - (5 * h + 4 * gap)) / 2;
+
+                for (let i = 0; i < 5; i++) {
+                    for (let j = 0; j < 5; j++) {
+                        const x = startX + (w + gap) * i;
+                        const y = startY + (h + gap) * j;
+
+                        ctx.beginPath();
+                        ctx.rect(x, y, w, h);
+                        ctx.stroke();
+
+                        if (Math.random() > 0.5) {
+                            const offset = Math.min(w, h) * 0.2;
+                            ctx.beginPath();
+                            ctx.rect(
+                                x + offset / 2,
+                                y + offset / 2,
+                                w - offset,
+                                h - offset,
+                            );
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function drawRadialPreview(ctx, width, height) {
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "black";
+
+                const cx = width * 0.5;
+                const cy = height * 0.5;
+                const radius = width * 0.3;
+                const num = 60;
+
+                for (let i = 0; i < num; i++) {
+                    const angle = ((Math.PI * 2) / num) * i;
+                    const x = cx + radius * Math.cos(angle);
+                    const y = cy + radius * Math.sin(angle);
+
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(angle + Math.PI / 2);
+                    ctx.scale(
+                        Math.random() * 2 + 0.5,
+                        Math.random() * 0.5 + 0.2,
+                    );
+
+                    const w = 4;
+                    const h = 40;
+                    ctx.fillRect(-w / 2, -h / 2, w, h);
+                    ctx.restore();
+                }
+            }
+
+            function drawAgentPreview(ctx, width, height) {
+                ctx.fillStyle = "silver";
+                ctx.fillRect(0, 0, width, height);
+
+                const agents = [];
+                for (let i = 0; i < 25; i++) {
+                    agents.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                    });
+                }
+
+                // Draw connections
+                ctx.strokeStyle = "black";
+                for (let i = 0; i < agents.length; i++) {
+                    for (let j = i + 1; j < agents.length; j++) {
+                        const dist = Math.sqrt(
+                            Math.pow(agents[i].x - agents[j].x, 2) +
+                                Math.pow(agents[i].y - agents[j].y, 2),
+                        );
+
+                        if (dist < 120) {
+                            ctx.lineWidth = Math.max(1, 12 - dist / 10);
+                            ctx.beginPath();
+                            ctx.moveTo(agents[i].x, agents[i].y);
+                            ctx.lineTo(agents[j].x, agents[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                // Draw agents
+                ctx.fillStyle = "red";
+                agents.forEach((agent) => {
+                    ctx.beginPath();
+                    ctx.arc(agent.x, agent.y, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            function drawNoisePreview(ctx, width, height) {
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, width, height);
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 2;
+
+                const cols = 15;
+                const rows = 15;
+                const cellW = width / cols;
+                const cellH = height / rows;
+
+                for (let i = 0; i < cols; i++) {
+                    for (let j = 0; j < rows; j++) {
+                        const x = i * cellW;
+                        const y = j * cellH;
+
+                        // Simple noise simulation
+                        const noise =
+                            Math.sin(i * 0.3) * Math.cos(j * 0.3) +
+                            Math.random() * 0.3;
+                        const angle = noise * Math.PI;
+                        const length = (Math.abs(noise) + 0.5) * cellW * 0.4;
+
+                        ctx.save();
+                        ctx.translate(x + cellW / 2, y + cellH / 2);
+                        ctx.rotate(angle);
+                        ctx.beginPath();
+                        ctx.moveTo(-length / 2, 0);
+                        ctx.lineTo(length / 2, 0);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            }
+
+            function drawTypographyPreview(ctx, width, height) {
+                ctx.fillStyle = "black";
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "white";
+
+                const chars = [".", "-", "+", "=", "_", "/"];
+                const cellSize = 15;
+                const cols = Math.floor(width / cellSize);
+                const rows = Math.floor(height / cellSize);
+
+                ctx.font = `${cellSize}px monospace`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+
+                // Create letter "A" pattern
+                for (let i = 0; i < cols; i++) {
+                    for (let j = 0; j < rows; j++) {
+                        const x = i * cellSize + cellSize / 2;
+                        const y = j * cellSize + cellSize / 2;
+
+                        // Simple "A" pattern
+                        const centerX = cols / 2;
+                        const centerY = rows / 2;
+                        const distFromCenter = Math.sqrt(
+                            Math.pow(i - centerX, 2) + Math.pow(j - centerY, 2),
+                        );
+
+                        if (distFromCenter < 8) {
+                            const char =
+                                chars[Math.floor(Math.random() * chars.length)];
+                            ctx.fillText(char, x, y);
+                        }
+                    }
+                }
+            }
+
+            function drawAnimatedTypographyPreview(ctx, width, height) {
+                ctx.fillStyle = "#351c5a";
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "white";
+
+                const text = "MUSE";
+                ctx.font = "120px serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+
+                // Create pixelated text effect
+                const chars = [".", "-", "+", "=", "_", "/"];
+                const cellSize = 8;
+
+                for (let i = 0; i < 50; i++) {
+                    for (let j = 0; j < 50; j++) {
+                        const x = i * cellSize + width * 0.2;
+                        const y = j * cellSize + height * 0.2;
+
+                        if (Math.random() > 0.7) {
+                            ctx.font = `${cellSize * 2}px serif`;
+                            const char =
+                                chars[Math.floor(Math.random() * chars.length)];
+                            ctx.fillText(char, x, y);
+                        }
+                    }
+                }
+            }
+
+            function drawFractalPreview(ctx, width, height) {
+                ctx.fillStyle = "#0f0f23";
+                ctx.fillRect(0, 0, width, height);
+                ctx.strokeStyle = "#8b4513";
+
+                function drawSimpleBranch(x, y, length, angle, depth) {
+                    if (depth === 0) return;
+
+                    const endX = x + Math.cos(angle) * length;
+                    const endY = y + Math.sin(angle) * length;
+
+                    ctx.lineWidth = depth;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+
+                    if (depth > 1) {
+                        drawSimpleBranch(
+                            endX,
+                            endY,
+                            length * 0.7,
+                            angle - 0.5,
+                            depth - 1,
+                        );
+                        drawSimpleBranch(
+                            endX,
+                            endY,
+                            length * 0.7,
+                            angle + 0.5,
+                            depth - 1,
+                        );
+                    } else {
+                        ctx.fillStyle = "#4ade80";
+                        ctx.beginPath();
+                        ctx.arc(endX, endY, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                drawSimpleBranch(width / 2, height * 0.9, 100, -Math.PI / 2, 6);
+            }
+
+            function drawCellularPreview(ctx, width, height) {
+                ctx.fillStyle = "#0a0a0a";
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "#00f5ff";
+
+                const cellSize = 12;
+                const cols = Math.floor(width / cellSize);
+                const rows = Math.floor(height / cellSize);
+
+                // Create some interesting patterns
+                for (let i = 0; i < cols; i++) {
+                    for (let j = 0; j < rows; j++) {
+                        const x = i * cellSize;
+                        const y = j * cellSize;
+
+                        // Create patterns that look like Game of Life
+                        if (
+                            Math.random() > 0.8 ||
+                            (i % 5 === 0 && j % 5 === 0) ||
+                            (Math.abs(i - cols / 2) < 2 &&
+                                Math.abs(j - rows / 2) < 10)
+                        ) {
+                            ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+                        }
+                    }
+                }
+            }
+
+            function drawWavePreview(ctx, width, height) {
+                ctx.fillStyle = "#000010";
+                ctx.fillRect(0, 0, width, height);
+
+                const sources = [
+                    { x: width * 0.3, y: height * 0.3 },
+                    { x: width * 0.7, y: height * 0.7 },
+                ];
+
+                // Create interference pattern
+                for (let x = 0; x < width; x += 4) {
+                    for (let y = 0; y < height; y += 4) {
+                        let totalWave = 0;
+
+                        sources.forEach((source) => {
+                            const distance = Math.sqrt(
+                                Math.pow(x - source.x, 2) +
+                                    Math.pow(y - source.y, 2),
+                            );
+                            totalWave +=
+                                Math.sin(distance * 0.1) *
+                                Math.exp(-distance * 0.003);
+                        });
+
+                        const intensity = Math.abs(totalWave) * 255;
+                        const hue = (totalWave + 1) * 180;
+
+                        ctx.fillStyle = `hsl(${hue}, 70%, ${intensity / 4 + 10}%)`;
+                        ctx.fillRect(x, y, 4, 4);
+                    }
+                }
+
+                // Draw sources
+                sources.forEach((source) => {
+                    ctx.fillStyle = "white";
+                    ctx.beginPath();
+                    ctx.arc(source.x, source.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            function drawPlaceholder(ctx, width, height) {
+                ctx.fillStyle = "#1a1a1a";
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "white";
+                ctx.font = "24px Inter";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("Sketch Preview", width / 2, height / 2);
+            }
+
+            function highlightCode(code) {
+                return code
+                    .replace(
+                        /(const|let|var|function|return|class|new|for|if|else)/g,
+                        '<span class="code-keyword">$1</span>',
+                    )
+                    .replace(
+                        /('[^']*'|"[^"]*"|`[^`]*`)/g,
+                        '<span class="code-string">$1</span>',
+                    )
+                    .replace(
+                        /(\/\/.*$)/gm,
+                        '<span class="code-comment">$1</span>',
+                    );
+            }
+
+            function showError(message) {
+                const frame = document.getElementById("sketchFrame");
+                frame.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+            }
+
+            function toggleControls() {
+                const panel = document.getElementById("controlsPanel");
+                panel.classList.toggle("active");
+            }
+
+            function toggleFullscreen() {
+                const frame = document.getElementById("sketchFrame");
+                if (!document.fullscreenElement) {
+                    frame.requestFullscreen?.() ||
+                        frame.mozRequestFullScreen?.() ||
+                        frame.webkitRequestFullscreen?.() ||
+                        frame.msRequestFullscreen?.();
+                } else {
+                    document.exitFullscreen?.() ||
+                        document.mozCancelFullScreen?.() ||
+                        document.webkitExitFullscreen?.() ||
+                        document.msExitFullscreen?.();
+                }
+            }
+
+            function exportImage() {
+                const canvas = document.querySelector(".sketch-canvas");
+                if (canvas) {
+                    const link = document.createElement("a");
+                    link.download = `${currentSketch}-export.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                }
+            }
+
+            function regenerateSketch() {
+                loadSketch(currentSketch);
+            }
+
+            function toggleAnimation() {
+                isAnimating = !isAnimating;
+                const button = document.getElementById("animationToggle");
+                button.textContent = isAnimating ? "Pause" : "Play";
+            }
+
+            function viewFullSource() {
+                window.open(`${currentSketch}`, "_blank");
+            }
+
+            // Keyboard shortcuts
+            document.addEventListener("keydown", (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+                    e.preventDefault();
+                    exportImage();
+                }
+                if (e.key === "f") {
+                    toggleFullscreen();
+                }
+                if (e.key === " ") {
+                    e.preventDefault();
+                    toggleAnimation();
+                }
+            });
+
+            // Click outside to close controls
+            document.addEventListener("click", (e) => {
+                const panel = document.getElementById("controlsPanel");
+                const button = document.querySelector(".controls-button");
+
+                if (
+                    panel.classList.contains("active") &&
+                    !panel.contains(e.target) &&
+                    !button.contains(e.target)
+                ) {
+                    panel.classList.remove("active");
+                }
+            });
+        </script>
+    </body>
+</html>
