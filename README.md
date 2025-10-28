@@ -1,10 +1,10 @@
-# 🎨 Creative Coding Museum
+# Creative Coding Museum
 
 A curated collection of generative art and creative coding experiments built with JavaScript and Canvas-Sketch. Experience algorithmic creativity through an elegant, museum-style interface.
 
 ![Creative Coding Museum](https://img.shields.io/badge/Creative%20Coding-Museum-8338ec?style=for-the-badge&logo=javascript)
 
-## ✨ Features
+## Features
 
 - **Museum Gallery Interface**: Browse artworks in a sleek, masonry-style layout
 - **Interactive Sketch Viewer**: Detailed view with controls and source code preview
@@ -12,7 +12,7 @@ A curated collection of generative art and creative coding experiments built wit
 - **Responsive Design**: Optimized for desktop and mobile viewing
 - **Educational Content**: Learn about techniques and algorithms behind each piece
 
-## 🎭 Gallery Highlights
+## Gallery Highlights
 
 ### Current Collection
 
@@ -25,7 +25,7 @@ A curated collection of generative art and creative coding experiments built wit
 7. **Cellular Automata** - Conway's Game of Life simulation
 8. **Wave Interference** - Physics-based wave pattern visualization
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -83,7 +83,7 @@ canvas-sketch fractal-tree.js --open
 canvas-sketch wave-interference.js --open
 ```
 
-## 🎮 Controls & Interactions
+## Controls & Interactions
 
 ### Universal Controls
 - **Cmd/Ctrl + S**: Export current sketch as PNG
@@ -115,7 +115,7 @@ canvas-sketch wave-interference.js --open
 - **+/-**: Add/remove sources
 - **Mouse**: Drag sources to move them
 
-## 🛠 Technical Details
+## Technical Details
 
 ### Built With
 - **Canvas-Sketch**: Framework for generative artwork
@@ -143,7 +143,7 @@ sketch-canvas-javascript/
 └── output/               # Exported images
 ```
 
-## 🎨 Creating New Sketches
+## Creating New Sketches
 
 ### Basic Template
 ```javascript
@@ -175,7 +175,7 @@ canvasSketch(sketch, settings);
 3. Create a preview function in the viewer
 4. Add a card to `index.html` gallery section
 
-## 📸 Exporting Artwork
+## Exporting Artwork
 
 ### High-Quality Exports
 Press `Cmd+S` (Mac) or `Ctrl+S` (Windows) while viewing any sketch to export a high-resolution PNG to your Downloads folder.
@@ -190,7 +190,7 @@ const settings = {
 };
 ```
 
-## 🎯 Learning Objectives
+## Learning Objectives
 
 Each sketch demonstrates specific creative coding concepts:
 
@@ -201,7 +201,7 @@ Each sketch demonstrates specific creative coding concepts:
 - **Procedural Generation**: Creating infinite variations
 - **Physics Simulation**: Real-world phenomena in digital form
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-sketch`)
@@ -211,7 +211,7 @@ Each sketch demonstrates specific creative coding concepts:
 6. Push to the branch (`git push origin feature/amazing-sketch`)
 7. Open a Pull Request
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Canvas-Sketch CLI Not Found
 ```bash
@@ -233,25 +233,22 @@ npm install
 - Reduce particle counts or grid sizes
 - Close other resource-intensive applications
 
-## 📚 Resources
+## Resources
 
 - [Canvas-Sketch Documentation](https://github.com/mattdesl/canvas-sketch)
 - [Creative Coding Resources](https://github.com/terkelg/awesome-creative-coding)
 - [Math for Programmers](https://p5js.org/learn/)
 - [Generative Art Theory](https://www.artnome.com/news/2018/8/8/why-love-generative-art)
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## 🎉 Acknowledgments
+## Acknowledgments
 
 - [Matt DesLauriers](https://github.com/mattdesl) for Canvas-Sketch
 - The creative coding community for inspiration
 - All the mathematicians and artists who paved the way
 
 ---
-
-**Happy Creative Coding!** 🎨✨
-
 *Explore, experiment, and create algorithmic art that bridges the gap between mathematics and beauty.*
